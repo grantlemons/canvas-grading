@@ -4,18 +4,21 @@ use anyhow::{Context, Result};
 use serde::Deserialize;
 use tracing::info;
 
-use crate::{file::FileSubmission, Config, Grade};
+use crate::{
+    file::{CanvasFile, FileSubmission},
+    Config, Grade,
+};
 
 #[derive(Debug, Deserialize)]
 pub struct Submission {
     user_id: u64,
     assignment_id: u64,
-    // canvadoc_document_id: Option<u64>,
     attempt: Option<u64>,
     /// None if submission has not been graded
     grader_id: Option<u64>,
     workflow_state: WorkflowState,
     redo_request: bool,
+    attachments: Option<Vec<CanvasFile>>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -44,7 +47,7 @@ impl Submission {
         !self.redo_request && self.grader_id.is_some()
     }
 
-    pub fn sumitted(&self) -> bool {
+    pub fn submitted(&self) -> bool {
         matches!(self.workflow_state, WorkflowState::Submitted)
     }
 
@@ -60,34 +63,60 @@ impl Submission {
         self.user_id
     }
 
-    pub fn file_id(&self) -> u64 {
-        0
+    pub fn files(&self) -> Option<Vec<FileSubmission>> {
+        Some(
+            self.attachments
+                .clone()?
+                .into_iter()
+                .map(|f| FileSubmission::new(self.user_id, self.assignment_id, f))
+                .collect(),
+        )
     }
 
     pub async fn assignment_submissions(assignment_id: u64, config: &Config) -> Result<Vec<Self>> {
         let url = format!(
-            "{}/api/v1/courses/{}/students/submissions",
+            "{}/api/v1/courses/{}/assignments/{assignment_id}/submissions",
             config.base_url, config.course_id
         );
-        info!("Requesting from \"{url}\"");
 
-        let tmp = format!("[{}]", assignment_id);
-        let form = HashMap::from([("workflow_state", "submitted"), ("assignment_ids", &tmp)]);
-        let response = config.client.get(url).query(&form).send().await?;
+        let mut next_page_exists = true;
+        let mut page = 1;
+        let mut responses: Vec<Self> = Vec::new();
+        while next_page_exists {
+            let page_str = page.to_string();
+            let form = HashMap::from([
+                ("workflow_state", "submitted"),
+                // ("per_page", "50"),
+                ("page", &page_str),
+            ]);
 
-        info!("Getting body from response...");
-        let body = response.text().await?;
-        let untyped: serde_json::Value =
-            serde_json::from_str(&body).context("Failed to parse invalid JSON body.")?;
-        info!("Parsed into untyped JSON");
+            info!("Requesting from \"{url}\", page {page}");
+            let response = config.client.get(&url).query(&form).send().await?;
+            let headers = response.headers().clone();
 
-        info!("Attempting to parse JSON into structured data type...");
-        serde_json::from_str(&body)
-            .with_context(|| format!("Unable to parse response to data type: {:#?}", untyped))
-    }
+            info!("Getting body from response...");
+            let body = response.text().await?;
+            let untyped: serde_json::Value =
+                serde_json::from_str(&body).context("Failed to parse invalid JSON body.")?;
+            info!("Parsed into untyped JSON");
 
-    pub async fn get_file(&self, config: &Config) -> Result<FileSubmission> {
-        FileSubmission::get(self, config).await
+            info!("Attempting to parse JSON into structured data type...");
+
+            let mut structured = serde_json::from_str(&body).with_context(|| {
+                format!("Unable to parse response to data type: {:#?}", untyped)
+            })?;
+            responses.append(&mut structured);
+
+            next_page_exists = headers
+                .get("Link")
+                .context("Failed to get link header.")?
+                .to_str()
+                .context("Failed to stringify link header")?
+                .contains("next");
+            page += 1;
+        }
+
+        Ok(responses.into_iter().filter(Self::submitted).collect())
     }
 
     pub async fn update_grades(

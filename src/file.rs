@@ -1,11 +1,12 @@
 use std::{io::Cursor, path::Path};
 
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 use serde::Deserialize;
 use tracing::info;
 
 use crate::{Config, Submission};
 
+#[derive(Debug, Clone)]
 pub struct FileSubmission {
     user_id: u64,
     assignment_id: u64,
@@ -25,12 +26,12 @@ impl std::fmt::Display for FileSubmission {
 }
 
 impl FileSubmission {
-    pub async fn get(submission: &Submission, config: &Config) -> Result<Self> {
-        Ok(Self {
-            user_id: submission.user(),
-            assignment_id: submission.assignment(),
-            file: CanvasFile::get(submission.file_id(), config).await?,
-        })
+    pub fn new(user_id: u64, assignment_id: u64, file: CanvasFile) -> Self {
+        Self {
+            user_id,
+            assignment_id,
+            file,
+        }
     }
 
     pub async fn download(&self, directiory: &Path) -> Result<()> {
@@ -40,7 +41,7 @@ impl FileSubmission {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct CanvasFile {
     url: String,
     filename: String,
@@ -55,26 +56,14 @@ impl CanvasFile {
         &self.filename
     }
 
-    pub async fn get(id: u64, config: &Config) -> Result<CanvasFile> {
-        let response = config
-            .client
-            .get(format!("{}/api/v1/files/{}", config.base_url, id))
-            .send()
-            .await?;
-
-        info!("Getting body from response...");
-        let body = response.text().await?;
-        let untyped: serde_json::Value =
-            serde_json::from_str(&body).context("Failed to parse invalid JSON body.")?;
-        info!("Parsed into untyped JSON");
-
-        info!("Attempting to parse JSON into structured data type...");
-        serde_json::from_str(&body)
-            .with_context(|| format!("Unable to parse response to data type: {:#?}", untyped))
-    }
-
     pub async fn download(&self, path: &Path) -> Result<()> {
         let response = reqwest::get(&self.url).await?;
+
+        // Create parent directories
+        std::fs::create_dir_all(
+            path.parent()
+                .ok_or(anyhow!("Path does not have a parent directory!"))?,
+        )?;
 
         let mut file = std::fs::File::create(path)?;
         let mut contents = Cursor::new(response.bytes().await?);

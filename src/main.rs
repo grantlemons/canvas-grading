@@ -1,6 +1,6 @@
 use std::{fs::File, str::FromStr, sync::Mutex};
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use canvas_grading::{Command, Config, FileSubmission, Grade, Submission, CLI};
 use clap::Parser;
 use std::io;
@@ -16,13 +16,18 @@ async fn main() -> Result<()> {
         Command::Submissions => {
             let submissions =
                 Submission::assignment_submissions(cli.assignment_id, &config).await?;
-            let ungraded_submissions = submissions.iter().filter(|s| !s.graded());
+            let files: Vec<FileSubmission> = submissions
+                .iter()
+                .filter(|s| !s.graded())
+                .filter_map(Submission::files)
+                .flatten()
+                .collect();
 
-            println!("{:#?}", ungraded_submissions);
-
-            let mut files: Vec<FileSubmission> = Vec::new();
-            for i in ungraded_submissions {
-                files.push(i.get_file(&config).await?);
+            let runtime_directiory = dirs::runtime_dir()
+                .ok_or(anyhow!("Unable to get runtime directory!"))?
+                .join("grading");
+            for file in files {
+                file.download(&runtime_directiory).await?;
             }
         }
         Command::Grade => {

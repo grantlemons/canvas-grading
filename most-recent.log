@@ -1,21 +1,81 @@
-  [2m2025-01-11T16:46:43.528717Z[0m [32m INFO[0m [1;32mcanvas_grading[0m[32m: [32mBuilding application reqwest client...[0m
+  [2m2025-01-11T21:47:04.587116Z[0m [32m INFO[0m [1;32mcanvas_grading[0m[32m: [32mBuilding application reqwest client...[0m
     [2;3mat[0m src/lib.rs:88
 
-  [2m2025-01-11T16:46:43.528761Z[0m [32m INFO[0m [1;32mcanvas_grading[0m[32m: [32mSetting auth header...[0m
+  [2m2025-01-11T21:47:04.587147Z[0m [32m INFO[0m [1;32mcanvas_grading[0m[32m: [32mSetting auth header...[0m
     [2;3mat[0m src/lib.rs:89
 
-  [2m2025-01-11T16:46:43.528776Z[0m [32m INFO[0m [1;32mcanvas_grading[0m[32m: [32mAuth header set![0m
+  [2m2025-01-11T21:47:04.587159Z[0m [32m INFO[0m [1;32mcanvas_grading[0m[32m: [32mAuth header set![0m
     [2;3mat[0m src/lib.rs:95
 
-  [2m2025-01-11T16:46:43.534606Z[0m [32m INFO[0m [1;32mcanvas_grading::submission[0m[32m: [32mRequesting from "https://elearning.mines.edu/api/v1/courses/72274/students/submissions"[0m
-    [2;3mat[0m src/submission.rs:72
+  [2m2025-01-11T21:47:04.591843Z[0m [32m INFO[0m [1;32mcanvas_grading::submission[0m[32m: [32mRequesting from "https://elearning.mines.edu/api/v1/courses/72274/assignments/461660/submissions", page 1[0m
+    [2;3mat[0m src/submission.rs:96
 
-  [2m2025-01-11T16:46:43.773608Z[0m [32m INFO[0m [1;32mcanvas_grading::submission[0m[32m: [32mGetting body from response...[0m
-    [2;3mat[0m src/submission.rs:78
+  [2m2025-01-11T21:47:04.898840Z[0m [32m INFO[0m [1;32mcanvas_grading::submission[0m[32m: [32mGetting body from response...[0m
+    [2;3mat[0m src/submission.rs:100
 
-  [2m2025-01-11T16:46:43.774206Z[0m [32m INFO[0m [1;32mcanvas_grading::submission[0m[32m: [32mParsed into untyped JSON[0m
-    [2;3mat[0m src/submission.rs:82
+  [2m2025-01-11T21:47:04.899705Z[0m [32m INFO[0m [1;32mcanvas_grading::submission[0m[32m: [32mParsed into untyped JSON[0m
+    [2;3mat[0m src/submission.rs:104
 
-  [2m2025-01-11T16:46:43.774258Z[0m [32m INFO[0m [1;32mcanvas_grading::submission[0m[32m: [32mAttempting to parse JSON into structured data type...[0m
-    [2;3mat[0m src/submission.rs:84
+  [2m2025-01-11T21:47:04.899717Z[0m [32m INFO[0m [1;32mcanvas_grading::submission[0m[32m: [32mAttempting to parse JSON into structured data type...[0m
+    [2;3mat[0m src/submission.rs:106
+
+  [2m2025-01-11T21:47:04.899867Z[0m [32m INFO[0m [1;32mcanvas_grading::submission[0m[32m: [32mRequesting from "https://elearning.mines.edu/api/v1/courses/72274/assignments/461660/submissions", page 2[0m
+    [2;3mat[0m src/submission.rs:96
+
+  [2m2025-01-11T21:47:05.129543Z[0m [32m INFO[0m [1;32mcanvas_grading::submission[0m[32m: [32mGetting body from response...[0m
+    [2;3mat[0m src/submission.rs:100
+
+  [2m2025-01-11T21:47:05.130493Z[0m [32m INFO[0m [1;32mcanvas_grading::submission[0m[32m: [32mParsed into untyped JSON[0m
+    [2;3mat[0m src/submission.rs:104
+
+  [2m2025-01-11T21:47:05.130504Z[0m [32m INFO[0m [1;32mcanvas_grading::submission[0m[32m: [32mAttempting to parse JSON into structured data type...[0m
+    [2;3mat[0m src/submission.rs:106
+
+  [2m2025-01-11T21:47:05.130673Z[0m [32m INFO[0m [1;32mcanvas_grading::submission[0m[32m: [32mRequesting from "https://elearning.mines.edu/api/v1/courses/72274/assignments/461660/submissions", page 3[0m
+    [2;3mat[0m src/submission.rs:96
+
+  [2m2025-01-11T21:47:05.347214Z[0m [32m INFO[0m [1;32mcanvas_grading::submission[0m[32m: [32mGetting body from response...[0m
+    [2;3mat[0m src/submission.rs:100
+
+  [2m2025-01-11T21:47:05.347695Z[0m [32m INFO[0m [1;32mcanvas_grading::submission[0m[32m: [32mParsed into untyped JSON[0m
+    [2;3mat[0m src/submission.rs:104
+
+  [2m2025-01-11T21:47:05.347706Z[0m [32m INFO[0m [1;32mcanvas_grading::submission[0m[32m: [32mAttempting to parse JSON into structured data type...[0m
+    [2;3mat[0m src/submission.rs:106
+
+  [2m2025-01-11T21:47:05.347868Z[0m [32m INFO[0m [1;32mcanvas_grading::submission[0m[32m: [32mRequesting from "https://elearning.mines.edu/api/v1/courses/72274/assignments/461660/submissions", page 4[0m
+    [2;3mat[0m src/submission.rs:96
+
+  [2m2025-01-11T21:47:05.673117Z[0m [32m INFO[0m [1;32mcanvas_grading::submission[0m[32m: [32mGetting body from response...[0m
+    [2;3mat[0m src/submission.rs:100
+
+  [2m2025-01-11T21:47:05.673547Z[0m [32m INFO[0m [1;32mcanvas_grading::submission[0m[32m: [32mParsed into untyped JSON[0m
+    [2;3mat[0m src/submission.rs:104
+
+  [2m2025-01-11T21:47:05.673557Z[0m [32m INFO[0m [1;32mcanvas_grading::submission[0m[32m: [32mAttempting to parse JSON into structured data type...[0m
+    [2;3mat[0m src/submission.rs:106
+
+  [2m2025-01-11T21:47:05.673905Z[0m [32m INFO[0m [1;32mcanvas_grading::submission[0m[32m: [32mRequesting from "https://elearning.mines.edu/api/v1/courses/72274/assignments/461660/submissions", page 5[0m
+    [2;3mat[0m src/submission.rs:96
+
+  [2m2025-01-11T21:47:05.863206Z[0m [32m INFO[0m [1;32mcanvas_grading::submission[0m[32m: [32mGetting body from response...[0m
+    [2;3mat[0m src/submission.rs:100
+
+  [2m2025-01-11T21:47:05.863650Z[0m [32m INFO[0m [1;32mcanvas_grading::submission[0m[32m: [32mParsed into untyped JSON[0m
+    [2;3mat[0m src/submission.rs:104
+
+  [2m2025-01-11T21:47:05.863669Z[0m [32m INFO[0m [1;32mcanvas_grading::submission[0m[32m: [32mAttempting to parse JSON into structured data type...[0m
+    [2;3mat[0m src/submission.rs:106
+
+  [2m2025-01-11T21:47:05.863836Z[0m [32m INFO[0m [1;32mcanvas_grading::submission[0m[32m: [32mRequesting from "https://elearning.mines.edu/api/v1/courses/72274/assignments/461660/submissions", page 6[0m
+    [2;3mat[0m src/submission.rs:96
+
+  [2m2025-01-11T21:47:06.027233Z[0m [32m INFO[0m [1;32mcanvas_grading::submission[0m[32m: [32mGetting body from response...[0m
+    [2;3mat[0m src/submission.rs:100
+
+  [2m2025-01-11T21:47:06.027700Z[0m [32m INFO[0m [1;32mcanvas_grading::submission[0m[32m: [32mParsed into untyped JSON[0m
+    [2;3mat[0m src/submission.rs:104
+
+  [2m2025-01-11T21:47:06.027712Z[0m [32m INFO[0m [1;32mcanvas_grading::submission[0m[32m: [32mAttempting to parse JSON into structured data type...[0m
+    [2;3mat[0m src/submission.rs:106
 
