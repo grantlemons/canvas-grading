@@ -4,22 +4,25 @@ use std::{fs::File, io::Read, path::PathBuf};
 
 use crate::{AccessToken, CLI};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Config {
     pub access_token: AccessToken,
     pub course_id: u64,
+    pub base_url: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 struct ConfigFile {
     pub access_token: Option<AccessToken>,
     pub course_id: Option<u64>,
+    pub base_url: Option<String>,
 }
 
 impl Config {
     pub fn get(command_line_options: &CLI) -> Result<Self> {
         let config_file_path = dirs::config_dir()
             .context("Unable to get config dir for system")?
+            .join("grading")
             .join("config.toml");
 
         let config_contents = ConfigFile::read_from_file(&config_file_path)?;
@@ -35,6 +38,11 @@ impl Config {
                 .course_id
                 .or(config_contents.course_id)
                 .ok_or(anyhow!("Course id not configured!"))?,
+            base_url: command_line_options
+                .base_url
+                .clone()
+                .or(config_contents.base_url)
+                .ok_or(anyhow!("Base URL not configured!"))?,
         })
     }
 }

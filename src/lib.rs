@@ -1,12 +1,18 @@
 use std::str::FromStr;
 
-use anyhow::Context;
+use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
+use reqwest::Client;
 use serde::{Deserialize, Serialize};
+use tracing::info;
 
 mod config;
+mod file;
+mod submission;
 
 pub use config::Config;
+pub use file::CanvasFile;
+pub use submission::Submission;
 
 /// A struct representing an access token for Canvas. Hides its value from Debug.
 #[derive(Serialize, Deserialize, Clone)]
@@ -18,10 +24,17 @@ impl std::fmt::Debug for AccessToken {
     }
 }
 
+impl AccessToken {
+    pub fn secret(&self) -> &str {
+        &self.0
+    }
+}
+
 #[derive(Parser, Clone, Debug)]
 #[command(version, about, long_about = None)]
 pub struct CLI {
     /// Override the Canvas access token from config
+    /// Either this or the option in config MUST BE SET
     #[arg(long)]
     pub access_token: Option<String>,
 
@@ -30,8 +43,16 @@ pub struct CLI {
     #[arg(long, short)]
     pub course_id: Option<u64>,
 
+    /// Override the base URL for Canvas from config
+    /// Either this or the option in config MUST BE SET
+    #[arg(long, short)]
+    pub base_url: Option<String>,
+
     #[command(subcommand)]
     pub command: Command,
+
+    /// Assignment ID
+    pub assignment_id: u64,
 }
 
 #[derive(Subcommand, Clone, Debug)]
@@ -42,7 +63,7 @@ pub enum Command {
 
 #[derive(Debug)]
 pub struct Grade {
-    user_id: String,
+    user_id: u64,
     grade: f32,
 }
 
@@ -61,4 +82,22 @@ impl FromStr for Grade {
             grade: grade.parse().context("Unable to parse grade to f32")?,
         })
     }
+}
+
+pub fn create_client(auth_token: AccessToken) -> Result<Client> {
+    info!("Building application reqwest client...");
+    info!("Setting auth header...");
+    let mut auth_bearer: reqwest::header::HeaderValue = ("Bearer ".to_owned()
+        + auth_token.secret())
+    .try_into()
+    .unwrap();
+    auth_bearer.set_sensitive(true);
+    info!("Auth header set!");
+
+    let mut headers = reqwest::header::HeaderMap::new();
+    headers.insert(reqwest::header::AUTHORIZATION, auth_bearer);
+
+    Ok(reqwest::ClientBuilder::new()
+        .default_headers(headers)
+        .build()?)
 }

@@ -1,20 +1,33 @@
 use std::{fs::File, str::FromStr, sync::Mutex};
 
 use anyhow::Result;
-use canvas_grading::{Command, Config, Grade, CLI};
+use canvas_grading::{CanvasFile, Command, Config, Grade, Submission, CLI};
 use clap::Parser;
 use std::io;
 
-fn main() -> Result<()> {
+#[tokio::main]
+async fn main() -> Result<()> {
     let cli = CLI::try_parse()?;
     setup_logging();
 
-    let _config = Config::get(&cli)?;
+    let config = Config::get(&cli)?;
 
     match cli.command {
-        Command::Submissions => todo!(),
+        Command::Submissions => {
+            let submissions = Submission::get_all(&config).await?;
+            let ungraded_submissions = submissions.iter().filter(|s| !s.graded());
+
+            let mut files: Vec<CanvasFile> = Vec::new();
+            for i in ungraded_submissions.to_owned() {
+                files.push(i.get_file(&config).await?);
+            }
+
+            println!("{:#?}", ungraded_submissions);
+        }
         Command::Grade => {
             let grades = read_grades();
+
+            Submission::update_grades(cli.assignment_id, &grades, &config).await?;
 
             println!("Grades: {:#?}", grades);
         }
