@@ -1,6 +1,6 @@
 use std::{fs::File, str::FromStr, sync::Mutex};
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use canvas_grading::{Command, Config, Grade, CLI};
 use clap::Parser;
 use std::io;
@@ -9,12 +9,12 @@ fn main() -> Result<()> {
     let cli = CLI::try_parse()?;
     setup_logging();
 
-    // let config = Config::get(&cli)?;
+    let _config = Config::get(&cli)?;
 
     match cli.command {
         Command::Submissions => todo!(),
         Command::Grade => {
-            let grades = read_grades()?;
+            let grades = read_grades();
 
             println!("Grades: {:#?}", grades);
         }
@@ -23,15 +23,15 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn read_grades() -> Result<Vec<Grade>> {
+fn read_grades() -> Vec<Grade> {
     let stdin = io::stdin();
 
-    Ok(stdin
+    stdin
         .lines()
         .map_while(Result::ok)
         .map(|line| Grade::from_str(line.trim()))
         .map_while(Result::ok)
-        .collect())
+        .collect()
 }
 
 #[allow(unused)]
