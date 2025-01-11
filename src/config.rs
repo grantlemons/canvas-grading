@@ -1,14 +1,16 @@
 use anyhow::{anyhow, Context, Result};
+use reqwest::Client;
 use serde::Deserialize;
 use std::{fs::File, io::Read, path::PathBuf};
 
-use crate::{AccessToken, CLI};
+use crate::{create_client, AccessToken, CLI};
 
 #[derive(Debug, Clone)]
 pub struct Config {
     pub access_token: AccessToken,
     pub course_id: u64,
     pub base_url: String,
+    pub client: Client,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -27,13 +29,14 @@ impl Config {
 
         let config_contents = ConfigFile::read_from_file(&config_file_path)?;
 
+        let access_token = command_line_options
+            .access_token
+            .clone()
+            .map(AccessToken)
+            .or(config_contents.access_token)
+            .ok_or(anyhow!("Access token not configured!"))?;
         Ok(Self {
-            access_token: command_line_options
-                .access_token
-                .clone()
-                .map(AccessToken)
-                .or(config_contents.access_token)
-                .ok_or(anyhow!("Access token not configured!"))?,
+            access_token: access_token.to_owned(),
             course_id: command_line_options
                 .course_id
                 .or(config_contents.course_id)
@@ -43,6 +46,7 @@ impl Config {
                 .clone()
                 .or(config_contents.base_url)
                 .ok_or(anyhow!("Base URL not configured!"))?,
+            client: create_client(access_token)?,
         })
     }
 }

@@ -96,6 +96,7 @@ pub fn create_client(auth_token: AccessToken) -> Result<Client> {
 
     let mut headers = reqwest::header::HeaderMap::new();
     headers.insert(reqwest::header::AUTHORIZATION, auth_bearer);
+    headers.insert("per_page", 100.into());
 
     Ok(reqwest::ClientBuilder::new()
         .default_headers(headers)

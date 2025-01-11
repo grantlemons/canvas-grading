@@ -14,7 +14,8 @@ async fn main() -> Result<()> {
 
     match cli.command {
         Command::Submissions => {
-            let submissions = Submission::get_all(&config).await?;
+            let submissions =
+                Submission::assignment_submissions(cli.assignment_id, &config).await?;
             let ungraded_submissions = submissions.iter().filter(|s| !s.graded());
 
             println!("{:#?}", ungraded_submissions);

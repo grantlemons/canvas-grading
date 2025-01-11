@@ -56,7 +56,11 @@ impl CanvasFile {
     }
 
     pub async fn get(id: u64, config: &Config) -> Result<CanvasFile> {
-        let response = reqwest::get(format!("{}/api/v1/files/{}", config.base_url, id)).await?;
+        let response = config
+            .client
+            .get(format!("{}/api/v1/files/{}", config.base_url, id))
+            .send()
+            .await?;
 
         info!("Getting body from response...");
         let body = response.text().await?;
