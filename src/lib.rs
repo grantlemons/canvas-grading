@@ -1,28 +1,26 @@
-use std::{fs::File, io::Read, path::PathBuf};
+use std::str::FromStr;
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::Context;
 use clap::{Parser, Subcommand};
 use serde::{Deserialize, Serialize};
 
-/// A struct representing an access token for Canvas. Can be serialized and deserialized but does
-/// not implement Debug.
+mod config;
+
+pub use config::Config;
+
+/// A struct representing an access token for Canvas. Hides its value from Debug.
 #[derive(Serialize, Deserialize, Clone)]
 pub struct AccessToken(String);
 
-#[derive(Deserialize)]
-pub struct ConfigFile {
-    pub access_token: Option<AccessToken>,
-    pub course_id: Option<u64>,
-}
-
-pub struct Config {
-    pub access_token: AccessToken,
-    pub course_id: u64,
+impl std::fmt::Debug for AccessToken {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "AccessToken")
+    }
 }
 
 #[derive(Parser, Clone, Debug)]
 #[command(version, about, long_about = None)]
-pub struct Cli {
+pub struct CLI {
     /// Override the Canvas access token from config
     #[arg(long)]
     pub access_token: Option<String>,
@@ -42,39 +40,25 @@ pub enum Command {
     Grade,
 }
 
-impl Config {
-    pub fn get(command_line_options: &Cli) -> Result<Self> {
-        let config_file_path = dirs::config_dir()
-            .context("Unable to get config dir for system")?
-            .join("config.toml");
-
-        let config_contents = ConfigFile::read_from_file(&config_file_path)?;
-
-        Ok(Self {
-            access_token: command_line_options
-                .access_token
-                .clone()
-                .map(AccessToken)
-                .or(config_contents.access_token)
-                .ok_or(anyhow!("Access token not configured!"))?,
-            course_id: command_line_options
-                .course_id
-                .or(config_contents.course_id)
-                .ok_or(anyhow!("Course id not configured!"))?,
-        })
-    }
+#[derive(Debug)]
+pub struct Grade {
+    user_id: String,
+    grade: f32,
 }
 
-impl ConfigFile {
-    pub fn read_from_file(path: &PathBuf) -> Result<Self> {
-        let config_file = File::open(path);
+impl FromStr for Grade {
+    type Err = anyhow::Error;
 
-        let mut file_contents = String::new();
-        if let Ok(mut file) = config_file {
-            file.read_to_string(&mut file_contents)
-                .context("Unable to read file contents.")?;
-        }
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut parts = s.split(": ");
+        let user_id = parts
+            .next()
+            .context("Unable to parse user id from stdin.")?;
+        let grade = parts.next().context("Unable to parse grade from stdin.")?;
 
-        toml::from_str(&file_contents).context("Unable to parse config as TOML")
+        Ok(Self {
+            user_id: user_id.parse().context("Unable to parse user id to u64")?,
+            grade: grade.parse().context("Unable to parse grade to f32")?,
+        })
     }
 }
