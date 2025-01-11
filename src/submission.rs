@@ -4,7 +4,7 @@ use anyhow::{Context, Result};
 use serde::Deserialize;
 use tracing::info;
 
-use crate::{CanvasFile, Config, Grade};
+use crate::{file::FileSubmission, Config, Grade};
 
 #[derive(Debug, Deserialize)]
 pub struct Submission {
@@ -40,6 +40,10 @@ impl Submission {
         self.user_id
     }
 
+    pub fn file_id(&self) -> u64 {
+        self.canvadoc_document_id
+    }
+
     pub async fn get_all(config: &Config) -> Result<Vec<Self>> {
         let response = reqwest::get(format!(
             "{}/api/v1/courses/{}/students/submissions",
@@ -58,8 +62,8 @@ impl Submission {
             .with_context(|| format!("Unable to parse response to data type: {:#?}", untyped))
     }
 
-    pub async fn get_file(&self, config: &Config) -> Result<CanvasFile> {
-        CanvasFile::get(self.canvadoc_document_id, config).await
+    pub async fn get_file(&self, config: &Config) -> Result<FileSubmission> {
+        FileSubmission::get(self, config).await
     }
 
     pub async fn update_grades(

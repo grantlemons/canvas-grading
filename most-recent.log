@@ -1,9 +1,0 @@
-  [2m2025-01-11T09:14:08.915193Z[0m [32m INFO[0m [1;32mcanvas_grading::submission[0m[32m: [32mGetting body from response...[0m
-    [2;3mat[0m src/submission.rs:50
-
-  [2m2025-01-11T09:14:08.915903Z[0m [32m INFO[0m [1;32mcanvas_grading::submission[0m[32m: [32mParsed into untyped JSON[0m
-    [2;3mat[0m src/submission.rs:54
-
-  [2m2025-01-11T09:14:08.915942Z[0m [32m INFO[0m [1;32mcanvas_grading::submission[0m[32m: [32mAttempting to parse JSON into structured data type...[0m
-    [2;3mat[0m src/submission.rs:56
-

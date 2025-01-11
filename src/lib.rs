@@ -11,7 +11,7 @@ mod file;
 mod submission;
 
 pub use config::Config;
-pub use file::CanvasFile;
+pub use file::FileSubmission;
 pub use submission::Submission;
 
 /// A struct representing an access token for Canvas. Hides its value from Debug.

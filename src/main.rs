@@ -1,7 +1,7 @@
 use std::{fs::File, str::FromStr, sync::Mutex};
 
 use anyhow::Result;
-use canvas_grading::{CanvasFile, Command, Config, Grade, Submission, CLI};
+use canvas_grading::{Command, Config, FileSubmission, Grade, Submission, CLI};
 use clap::Parser;
 use std::io;
 
@@ -17,12 +17,12 @@ async fn main() -> Result<()> {
             let submissions = Submission::get_all(&config).await?;
             let ungraded_submissions = submissions.iter().filter(|s| !s.graded());
 
-            let mut files: Vec<CanvasFile> = Vec::new();
-            for i in ungraded_submissions.to_owned() {
+            println!("{:#?}", ungraded_submissions);
+
+            let mut files: Vec<FileSubmission> = Vec::new();
+            for i in ungraded_submissions {
                 files.push(i.get_file(&config).await?);
             }
-
-            println!("{:#?}", ungraded_submissions);
         }
         Command::Grade => {
             let grades = read_grades();

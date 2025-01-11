@@ -1,21 +1,52 @@
+use std::{io::Cursor, path::Path};
+
 use anyhow::{Context, Result};
 use serde::Deserialize;
 use tracing::info;
 
-use crate::Config;
+use crate::{Config, Submission};
+
+pub struct FileSubmission {
+    user_id: u64,
+    assignment_id: u64,
+    file: CanvasFile,
+}
+
+impl std::fmt::Display for FileSubmission {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}_{}_{}",
+            self.user_id,
+            self.assignment_id,
+            self.file.filename()
+        )
+    }
+}
+
+impl FileSubmission {
+    pub async fn get(submission: &Submission, config: &Config) -> Result<Self> {
+        Ok(Self {
+            user_id: submission.user(),
+            assignment_id: submission.assignment(),
+            file: CanvasFile::get(submission.file_id(), config).await?,
+        })
+    }
+
+    pub async fn download(&self, directiory: &Path) -> Result<()> {
+        let path = directiory.join(self.to_string());
+
+        self.file.download(&path).await
+    }
+}
 
 #[derive(Debug, Deserialize)]
 pub struct CanvasFile {
-    id: u64,
     url: String,
     filename: String,
 }
 
 impl CanvasFile {
-    pub fn id(&self) -> u64 {
-        self.id
-    }
-
     pub fn url(&self) -> &str {
         &self.url
     }
@@ -36,5 +67,15 @@ impl CanvasFile {
         info!("Attempting to parse JSON into structured data type...");
         serde_json::from_str(&body)
             .with_context(|| format!("Unable to parse response to data type: {:#?}", untyped))
+    }
+
+    pub async fn download(&self, path: &Path) -> Result<()> {
+        let response = reqwest::get(&self.url).await?;
+
+        let mut file = std::fs::File::create(path)?;
+        let mut contents = Cursor::new(response.bytes().await?);
+        std::io::copy(&mut contents, &mut file)?;
+
+        Ok(())
     }
 }
