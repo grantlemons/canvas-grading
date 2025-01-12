@@ -41,8 +41,6 @@ async fn main() -> Result<()> {
             let grades = read_grades();
 
             Submission::update_grades(cli.assignment_id, &grades, &config).await?;
-
-            println!("Grades: {:#?}", grades);
         }
     }
 
