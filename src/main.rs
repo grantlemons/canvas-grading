@@ -18,16 +18,23 @@ async fn main() -> Result<()> {
                 Submission::assignment_submissions(cli.assignment_id, &config).await?;
             let files: Vec<FileSubmission> = submissions
                 .iter()
-                .filter(|s| !s.graded())
-                .filter_map(Submission::files)
+                .flat_map(Submission::files)
                 .flatten()
                 .collect();
 
             let runtime_directiory = dirs::runtime_dir()
-                .ok_or(anyhow!("Unable to get runtime directory!"))?
+                .expect("Unable to get runtime directiory for system!")
                 .join("grading");
+
             for file in files {
                 file.download(&runtime_directiory).await?;
+                println!(
+                    "{}",
+                    runtime_directiory
+                        .join(file.to_string())
+                        .to_str()
+                        .ok_or(anyhow!("Unable to convert path to string"))?
+                );
             }
         }
         Command::Grade => {
@@ -55,7 +62,11 @@ fn read_grades() -> Vec<Grade> {
 
 #[allow(unused)]
 fn setup_logging() {
-    let log_file = File::create("most-recent.log").unwrap();
+    let log_directory = dirs::data_dir()
+        .expect("Unable to get data directory for system!")
+        .join("grading");
+    std::fs::create_dir_all(&log_directory).expect("Unable to create log directory!");
+    let log_file = File::create(log_directory.join("grading.log")).unwrap();
     let subscriber = tracing_subscriber::FmtSubscriber::builder()
         .with_max_level(tracing::Level::INFO)
         .with_writer(Mutex::new(log_file))

@@ -2,6 +2,7 @@ use anyhow::{anyhow, Context, Result};
 use reqwest::Client;
 use serde::Deserialize;
 use std::{fs::File, io::Read, path::PathBuf};
+use tracing::info;
 
 use crate::{create_client, AccessToken, CLI};
 
@@ -28,6 +29,7 @@ impl Config {
             .join("config.toml");
 
         let config_contents = ConfigFile::read_from_file(&config_file_path)?;
+        info!("Config File: {:#?}", config_contents);
 
         let access_token = command_line_options
             .access_token

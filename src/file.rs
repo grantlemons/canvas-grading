@@ -1,10 +1,9 @@
 use std::{io::Cursor, path::Path};
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{anyhow, Result};
 use serde::Deserialize;
 use tracing::info;
 
-use crate::{Config, Submission};
 
 #[derive(Debug, Clone)]
 pub struct FileSubmission {
@@ -37,6 +36,11 @@ impl FileSubmission {
     pub async fn download(&self, directiory: &Path) -> Result<()> {
         let path = directiory.join(self.to_string());
 
+        info!(
+            "Downloading \"{}\" to {}",
+            self.file.url(),
+            path.to_str().unwrap()
+        );
         self.file.download(&path).await
     }
 }
