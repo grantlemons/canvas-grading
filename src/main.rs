@@ -1,22 +1,36 @@
 use std::{fs::File, str::FromStr, sync::Mutex};
 
 use anyhow::{anyhow, Result};
-use canvas_grading::{Command, Config, FileSubmission, Grade, Submission, CLI};
-use clap::Parser;
+use canvas_grading::{Command, Config, Grade, Submission, CLI};
+use clap::{CommandFactory, Parser};
 use std::io;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let cli = CLI::try_parse()?;
-    setup_logging();
+    // Setup autocomplete
+    let matches = CLI::command().get_matches();
+    if let Some(generator) = matches
+        .get_one::<clap_complete::aot::Shell>("generate")
+        .copied()
+    {
+        let mut cmd = CLI::command();
+        eprintln!("Generating completion file for {generator}...");
+        let name = cmd.get_name().to_string();
+        clap_complete::generate(generator, &mut cmd, name, &mut io::stdout());
 
+        return Ok(());
+    }
+
+    let cli = CLI::try_parse()?;
+
+    setup_logging();
     let config = Config::get(&cli)?;
 
     match cli.command {
         Command::Submissions => {
             let submissions =
                 Submission::assignment_submissions(cli.assignment_id, &config).await?;
-            let files: Vec<FileSubmission> = submissions
+            let files: Vec<_> = submissions
                 .iter()
                 .flat_map(Submission::files)
                 .flatten()

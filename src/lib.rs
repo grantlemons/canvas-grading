@@ -2,6 +2,7 @@ use std::str::FromStr;
 
 use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
+use clap_complete::Shell;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use tracing::info;
@@ -33,20 +34,24 @@ impl AccessToken {
 #[derive(Parser, Clone, Debug)]
 #[command(version, about, long_about = None)]
 pub struct CLI {
-    /// Override the Canvas access token from config
+    /// Override the Canvas access token from config.
     /// Either this or the option in config MUST BE SET
     #[arg(long)]
     pub access_token: Option<String>,
 
-    /// Override the course id from config
+    /// Override the course id from config.
     /// Either this or the option in config MUST BE SET
     #[arg(long, short)]
     pub course_id: Option<u64>,
 
-    /// Override the base URL for Canvas from config
+    /// Override the base URL for Canvas from config.
     /// Either this or the option in config MUST BE SET
     #[arg(long, short)]
     pub base_url: Option<String>,
+
+    /// Generate shell completion
+    #[arg(long)]
+    generate: Option<Shell>,
 
     #[command(subcommand)]
     pub command: Command,
