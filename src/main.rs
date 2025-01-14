@@ -1,7 +1,7 @@
 use std::{fs::File, str::FromStr, sync::Mutex};
 
 use anyhow::{anyhow, Result};
-use canvas_grading::{Command, Config, Grade, Submission, CLI};
+use canvas_grading::{Command, Comment, Config, Grade, Submission, CLI};
 use clap::{CommandFactory, Parser};
 use std::io;
 
@@ -52,24 +52,65 @@ async fn main() -> Result<()> {
             }
         }
         Command::Grade => {
-            let grades = read_grades();
+            let (grades, comments) = read_grades_and_comments();
 
-            Submission::update_grades(cli.assignment_id, &grades, &config).await?;
+            // Reduce multiple comments to a single one
+            let mut reduced_comments = Vec::new();
+            let mut acc = String::new();
+            let mut user_id: Option<u64> = None;
+            for comment in comments {
+                if user_id.map_or(true, |id| id == comment.user_id) {
+                    acc.push_str(&comment.comment);
+                    acc.push('\n');
+                } else if let Some(uid) = user_id {
+                    reduced_comments.push(Comment {
+                        user_id: uid,
+                        comment: acc.to_owned(),
+                    });
+                    acc = comment.comment;
+                }
+
+                user_id = Some(comment.user_id)
+            }
+            if let Some(user_id) = user_id {
+                reduced_comments.push(Comment {
+                    user_id,
+                    comment: acc.to_owned(),
+                });
+            }
+
+            Submission::update_grades_with_comments(
+                cli.assignment_id,
+                &grades,
+                &reduced_comments,
+                &config,
+            )
+            .await?;
         }
     }
 
     Ok(())
 }
 
-fn read_grades() -> Vec<Grade> {
+fn read_grades_and_comments() -> (Vec<Grade>, Vec<Comment>) {
     let stdin = io::stdin();
 
-    stdin
+    let (grades, comments): (Vec<_>, Vec<_>) = stdin
         .lines()
         .map_while(Result::ok)
-        .map(|line| Grade::from_str(line.trim()))
-        .map_while(Result::ok)
-        .collect()
+        .map(|line| line.trim().to_owned())
+        .map(|line| (line.to_owned(), Grade::from_str(&line).ok()))
+        .map(|(line, grade)| {
+            grade.map_or_else(
+                || (None, Comment::from_str(&line).ok()),
+                |g| (Some(g), None),
+            )
+        })
+        .unzip();
+    let grades: Vec<Grade> = grades.into_iter().flatten().collect();
+    let comments: Vec<Comment> = comments.into_iter().flatten().collect();
+
+    (grades, comments)
 }
 
 #[allow(unused)]

@@ -68,8 +68,8 @@ pub enum Command {
 
 #[derive(Debug)]
 pub struct Grade {
-    user_id: u64,
-    grade: f32,
+    pub user_id: u64,
+    pub grade: f32,
 }
 
 impl FromStr for Grade {
@@ -85,6 +85,31 @@ impl FromStr for Grade {
         Ok(Self {
             user_id: user_id.parse().context("Unable to parse user id to u64")?,
             grade: grade.parse().context("Unable to parse grade to f32")?,
+        })
+    }
+}
+
+#[derive(Debug)]
+pub struct Comment {
+    pub user_id: u64,
+    pub comment: String,
+}
+
+impl FromStr for Comment {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut parts = s.split(": ");
+        let user_id = parts
+            .next()
+            .context("Unable to parse user id from stdin.")?;
+        let comment = parts
+            .next()
+            .context("Unable to parse comment from stdin.")?;
+
+        Ok(Self {
+            user_id: user_id.parse().context("Unable to parse user id to u64")?,
+            comment: comment.to_string(),
         })
     }
 }

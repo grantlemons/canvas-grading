@@ -6,7 +6,7 @@ use tracing::info;
 
 use crate::{
     file::{CanvasFile, FileSubmission},
-    Config, Grade,
+    Comment, Config, Grade,
 };
 
 #[derive(Debug, Deserialize)]
@@ -37,7 +37,7 @@ impl std::fmt::Display for Submission {
             "{}_{}_{}",
             self.user_id,
             self.assignment_id,
-            self.attempt.unwrap_or(0)
+            self.attempt()
         )
     }
 }
@@ -55,8 +55,8 @@ impl Submission {
         self.assignment_id
     }
 
-    pub fn attempt(&self) -> Option<u64> {
-        self.attempt
+    pub fn attempt(&self) -> u64 {
+        self.attempt.unwrap_or(0)
     }
 
     pub fn user(&self) -> u64 {
@@ -68,7 +68,7 @@ impl Submission {
             self.attachments
                 .clone()?
                 .into_iter()
-                .map(|f| FileSubmission::new(self.user_id, self.assignment_id, f))
+                .map(|f| FileSubmission::new(self, f))
                 .collect(),
         )
     }
@@ -129,6 +129,40 @@ impl Submission {
                 .iter()
                 .map(|g| (format!("grade_data[{}][posted_grade]", g.user_id), g.grade)),
         );
+
+        config
+            .client
+            .post(format!(
+                "{}/api/v1/courses/{}/assignments/{assignment_id}/submissions/update_grades",
+                config.base_url, config.course_id
+            ))
+            .form(&form)
+            .send()
+            .await?;
+
+        Ok(())
+    }
+
+    pub async fn update_grades_with_comments(
+        assignment_id: u64,
+        grades: &[Grade],
+        comments: &[Comment],
+        config: &Config,
+    ) -> Result<()> {
+        let form_grades = grades.iter().map(|g| {
+            (
+                format!("grade_data[{}][posted_grade]", g.user_id),
+                g.grade.to_string(),
+            )
+        });
+        let form_comments = comments.iter().map(|c| {
+            (
+                format!("grade_data[{}][text_comment]", c.user_id),
+                c.comment.to_owned(),
+            )
+        });
+
+        let form = HashMap::<String, String>::from_iter(form_grades.chain(form_comments));
 
         config
             .client

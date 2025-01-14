@@ -4,11 +4,13 @@ use anyhow::{anyhow, Result};
 use serde::Deserialize;
 use tracing::info;
 
+use crate::Submission;
 
 #[derive(Debug, Clone)]
 pub struct FileSubmission {
     user_id: u64,
     assignment_id: u64,
+    attempt: u64,
     file: CanvasFile,
 }
 
@@ -16,19 +18,21 @@ impl std::fmt::Display for FileSubmission {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "{}_{}_{}",
+            "{}_{}_{}_{}",
             self.user_id,
             self.assignment_id,
+            self.attempt,
             self.file.filename()
         )
     }
 }
 
 impl FileSubmission {
-    pub fn new(user_id: u64, assignment_id: u64, file: CanvasFile) -> Self {
+    pub fn new(submission: &Submission, file: CanvasFile) -> Self {
         Self {
-            user_id,
-            assignment_id,
+            user_id: submission.user(),
+            assignment_id: submission.assignment(),
+            attempt: submission.attempt(),
             file,
         }
     }
