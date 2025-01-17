@@ -50,3 +50,15 @@ The `grade` command reads files in the following format from standard input (ang
 Points do not need comments, and comments do not need grades.
 
 Multiple comment lines for the same user id will be joined together into a single comment before uploading.
+
+## Config File
+
+Placing a configuration file `grading/config.toml` in the configuration directory for your system allows you to set the options needed to access Canvas.
+
+Passing options will override each individually.
+
+```toml
+course_id = <COURSE_ID>
+access_token = "<ACCESS_TOKEN>"
+base_url = "<CANVAS_URL>"
+```
