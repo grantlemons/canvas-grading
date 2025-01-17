@@ -51,6 +51,10 @@ impl Submission {
         matches!(self.workflow_state, WorkflowState::Submitted)
     }
 
+    pub fn unsubmitted(&self) -> bool {
+        matches!(self.workflow_state, WorkflowState::Unsubmitted)
+    }
+
     pub fn assignment(&self) -> u64 {
         self.assignment_id
     }
@@ -117,6 +121,56 @@ impl Submission {
         }
 
         Ok(responses.into_iter().filter(Self::submitted).collect())
+    }
+
+    pub async fn count_submissions(
+        assignment_id: u64,
+        predicate: &dyn Fn(&Self) -> bool,
+        config: &Config,
+    ) -> Result<usize> {
+        let url = format!(
+            "{}/api/v1/courses/{}/assignments/{assignment_id}/submissions",
+            config.base_url, config.course_id
+        );
+
+        let mut next_page_exists = true;
+        let mut page = 1;
+        let mut responses: Vec<Self> = Vec::new();
+        while next_page_exists {
+            let page_str = page.to_string();
+            let form = HashMap::from([
+                ("workflow_state", "submitted"),
+                // ("per_page", "50"),
+                ("page", &page_str),
+            ]);
+
+            info!("Requesting from \"{url}\", page {page}");
+            let response = config.client.get(&url).query(&form).send().await?;
+            let headers = response.headers().clone();
+
+            info!("Getting body from response...");
+            let body = response.text().await?;
+            let untyped: serde_json::Value =
+                serde_json::from_str(&body).context("Failed to parse invalid JSON body.")?;
+            info!("Parsed into untyped JSON");
+
+            info!("Attempting to parse JSON into structured data type...");
+
+            let mut structured = serde_json::from_str(&body).with_context(|| {
+                format!("Unable to parse response to data type: {:#?}", untyped)
+            })?;
+            responses.append(&mut structured);
+
+            next_page_exists = headers
+                .get("Link")
+                .context("Failed to get link header.")?
+                .to_str()
+                .context("Failed to stringify link header")?
+                .contains("next");
+            page += 1;
+        }
+
+        Ok(responses.into_iter().filter(predicate).count())
     }
 
     pub async fn update_grades(

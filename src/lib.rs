@@ -56,14 +56,26 @@ pub struct CLI {
     #[command(subcommand)]
     pub command: Command,
 
-    /// Assignment ID
+    /// Assignment ID in Canvas
     pub assignment_id: u64,
 }
 
 #[derive(Subcommand, Clone, Debug)]
 pub enum Command {
+    /// Count the number of ungraded submissions
+    #[command(subcommand)]
+    Count(CountOptions),
+    /// Download ungraded submissions and print the paths to standard output
     Submissions,
+    /// Upload grades and comments from file
     Grade,
+}
+
+#[derive(Subcommand, Clone, Debug)]
+pub enum CountOptions {
+    Unsubmitted,
+    Submitted,
+    Graded,
 }
 
 #[derive(Debug)]

@@ -1,7 +1,7 @@
-use std::{fs::File, str::FromStr, sync::Mutex};
+use std::{fs::File, option, str::FromStr, sync::Mutex};
 
 use anyhow::{anyhow, Result};
-use canvas_grading::{Command, Comment, Config, Grade, Submission, CLI};
+use canvas_grading::{Command, Comment, Config, CountOptions, Grade, Submission, CLI};
 use clap::{CommandFactory, Parser};
 use std::io;
 
@@ -86,6 +86,18 @@ async fn main() -> Result<()> {
                 &config,
             )
             .await?;
+        }
+        Command::Count(option) => {
+            let predicate = match option {
+                CountOptions::Unsubmitted => Submission::unsubmitted,
+                CountOptions::Submitted => Submission::submitted,
+                CountOptions::Graded => Submission::graded,
+            };
+
+            println!(
+                "{}",
+                Submission::count_submissions(cli.assignment_id, &predicate, &config).await?
+            )
         }
     }
 
