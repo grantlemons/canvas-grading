@@ -62,13 +62,13 @@ pub struct CLI {
 
 #[derive(Subcommand, Clone, Debug)]
 pub enum Command {
-    /// Count the number of ungraded submissions
-    #[command(subcommand)]
-    Count(CountOptions),
     /// Download ungraded submissions and print the paths to standard output
     Submissions,
     /// Upload grades and comments from file
     Grade,
+    /// Count the number of submissions meeting a requirement
+    #[command(subcommand)]
+    Count(CountOptions),
 }
 
 #[derive(Subcommand, Clone, Debug)]
