@@ -58,7 +58,7 @@ Placing a configuration file `grading/config.toml` in the configuration director
 Passing options will override each individually.
 
 ```toml
-course_id = <COURSE_ID>
+course_id = "<COURSE_ID>"
 access_token = "<ACCESS_TOKEN>"
 base_url = "<CANVAS_URL>"
 ```
