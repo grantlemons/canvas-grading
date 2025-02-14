@@ -1,7 +1,14 @@
 [package]
 name = "canvas-grading"
+authors = ["Grant Lemons <grantlemons@aol.com>"]
 version = "0.1.1"
 edition = "2021"
+description = "CLI tool used to fetch submissions and upload grades to and from Canvas LMS"
+repository = "https://github.com/grantlemons/canvas-grading/"
+license = "AGPL-3.0-only"
+readme = "README.md"
+keywords = ["canvas", "lms", "canvas-cli"]
+categories = ["command-line-utilities"]
 
 [dependencies]
 anyhow = "1.0.95"
