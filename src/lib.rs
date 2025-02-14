@@ -111,13 +111,9 @@ impl FromStr for Comment {
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut parts = s.split(": ");
-        let user_id = parts
-            .next()
-            .context("Unable to parse user id from stdin.")?;
-        let comment = parts
-            .next()
-            .context("Unable to parse comment from stdin.")?;
+        let (user_id, comment) = s
+            .split_once(": ")
+            .context("Unable to parse comment line.")?;
 
         Ok(Self {
             user_id: user_id.parse().context("Unable to parse user id to u64")?,
