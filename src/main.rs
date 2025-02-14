@@ -1,4 +1,4 @@
-use std::{fs::File, option, str::FromStr, sync::Mutex};
+use std::{fs::File, str::FromStr, sync::Mutex};
 
 use anyhow::{anyhow, Result};
 use canvas_grading::{Command, Comment, Config, CountOptions, Grade, Submission, CLI};
