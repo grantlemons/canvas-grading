@@ -8,6 +8,7 @@ A small program used as part of a grading script to download submissions and upl
 Usage: canvas-grading [OPTIONS] <ASSIGNMENT_ID> <COMMAND>
 
 Commands:
+  debug        Read in a results file, parse it and output the result
   submissions  Download ungraded submissions and print the paths to standard output
   grade        Upload grades and comments from file
   count        Count the number of submissions meeting a requirement

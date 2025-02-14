@@ -62,6 +62,8 @@ pub struct CLI {
 
 #[derive(Subcommand, Clone, Debug)]
 pub enum Command {
+    /// Read in a results file, parse it and output the result
+    Debug,
     /// Download ungraded submissions and print the paths to standard output
     Submissions,
     /// Upload grades and comments from file

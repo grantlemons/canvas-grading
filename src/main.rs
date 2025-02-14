@@ -27,6 +27,13 @@ async fn main() -> Result<()> {
     let config = Config::get(&cli)?;
 
     match cli.command {
+        Command::Debug => {
+            let (grades, comments) = read_grades_and_comments();
+
+            let reduced_comments = reduce_comments(comments);
+
+            dbg!(grades, reduced_comments, config);
+        }
         Command::Submissions => {
             let submissions =
                 Submission::assignment_submissions(cli.assignment_id, &config).await?;
@@ -54,31 +61,7 @@ async fn main() -> Result<()> {
         Command::Grade => {
             let (grades, comments) = read_grades_and_comments();
 
-            // Reduce multiple comments to a single one
-            let mut reduced_comments = Vec::new();
-            let mut acc = String::new();
-            let mut user_id: Option<u64> = None;
-            for comment in comments {
-                if user_id.map_or(true, |id| id == comment.user_id) {
-                    acc.push_str(&comment.comment);
-                    acc.push('\n');
-                } else if let Some(uid) = user_id {
-                    reduced_comments.push(Comment {
-                        user_id: uid,
-                        comment: acc.to_owned(),
-                    });
-                    acc = comment.comment;
-                }
-
-                user_id = Some(comment.user_id)
-            }
-            if let Some(user_id) = user_id {
-                reduced_comments.push(Comment {
-                    user_id,
-                    comment: acc.to_owned(),
-                });
-            }
-
+            let reduced_comments = reduce_comments(comments);
             Submission::update_grades_with_comments(
                 cli.assignment_id,
                 &grades,
@@ -102,6 +85,35 @@ async fn main() -> Result<()> {
     }
 
     Ok(())
+}
+
+/// Reduce multiple comments to a single one
+fn reduce_comments(comments: Vec<Comment>) -> Vec<Comment> {
+    let mut reduced_comments = Vec::new();
+    let mut acc = String::new();
+    let mut user_id: Option<u64> = None;
+    for comment in comments {
+        if user_id.map_or(true, |id| id == comment.user_id) {
+            acc.push_str(&comment.comment);
+            acc.push('\n');
+        } else if let Some(uid) = user_id {
+            reduced_comments.push(Comment {
+                user_id: uid,
+                comment: acc.to_owned(),
+            });
+            acc = comment.comment;
+        }
+
+        user_id = Some(comment.user_id)
+    }
+    if let Some(user_id) = user_id {
+        reduced_comments.push(Comment {
+            user_id,
+            comment: acc.to_owned(),
+        });
+    }
+
+    reduced_comments
 }
 
 fn read_grades_and_comments() -> (Vec<Grade>, Vec<Comment>) {
