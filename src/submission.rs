@@ -16,6 +16,7 @@ pub struct Submission {
     attempt: Option<u64>,
     /// None if submission has not been graded
     grader_id: Option<u64>,
+    score: Option<f32>,
     workflow_state: WorkflowState,
     redo_request: bool,
     attachments: Option<Vec<CanvasFile>>,
@@ -44,11 +45,11 @@ impl std::fmt::Display for Submission {
 
 impl Submission {
     pub fn graded(&self) -> bool {
-        !self.redo_request && self.grader_id.is_some()
+        !self.redo_request && self.grader_id.is_some() && self.score.is_some()
     }
 
     pub fn submitted(&self) -> bool {
-        matches!(self.workflow_state, WorkflowState::Submitted)
+        matches!(self.workflow_state, WorkflowState::Submitted) || !self.graded()
     }
 
     pub fn unsubmitted(&self) -> bool {
