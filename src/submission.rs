@@ -49,7 +49,8 @@ impl Submission {
     }
 
     pub fn submitted(&self) -> bool {
-        matches!(self.workflow_state, WorkflowState::Submitted) || !self.graded()
+        matches!(self.workflow_state, WorkflowState::Submitted)
+            || (!self.unsubmitted() && !self.graded())
     }
 
     pub fn unsubmitted(&self) -> bool {
