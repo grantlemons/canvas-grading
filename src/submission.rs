@@ -54,7 +54,7 @@ impl Submission {
     }
 
     pub fn unsubmitted(&self) -> bool {
-        matches!(self.workflow_state, WorkflowState::Unsubmitted)
+        matches!(self.workflow_state, WorkflowState::Unsubmitted) || self.attachments.is_none()
     }
 
     pub fn assignment(&self) -> u64 {
