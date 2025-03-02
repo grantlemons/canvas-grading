@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use anyhow::{Context, Result};
+use itertools::Itertools;
 use serde::Deserialize;
 use tracing::info;
 
@@ -45,12 +46,18 @@ impl std::fmt::Display for Submission {
 
 impl Submission {
     pub fn graded(&self) -> bool {
-        !self.redo_request && self.grader_id.is_some() && self.score.is_some()
+        !self.redo_request
+            && self.grader_id.is_some()
+            && self.score.is_some()
+            && matches!(self.workflow_state, WorkflowState::Graded)
     }
 
     pub fn submitted(&self) -> bool {
-        matches!(self.workflow_state, WorkflowState::Submitted)
-            || (!self.unsubmitted() && !self.graded())
+        !self.unsubmitted()
+    }
+
+    pub fn ungraded(&self) -> bool {
+        self.submitted() && !self.graded()
     }
 
     pub fn unsubmitted(&self) -> bool {
@@ -79,7 +86,11 @@ impl Submission {
         )
     }
 
-    pub async fn assignment_submissions(assignment_id: u64, config: &Config) -> Result<Vec<Self>> {
+    pub async fn assignment_submissions(
+        assignment_id: u64,
+        predicate: &dyn Fn(&Self) -> bool,
+        config: &Config,
+    ) -> Result<Vec<Self>> {
         let url = format!(
             "{}/api/v1/courses/{}/assignments/{assignment_id}/submissions",
             config.base_url, config.course_id
@@ -122,7 +133,15 @@ impl Submission {
             page += 1;
         }
 
-        Ok(responses.into_iter().filter(Self::submitted).collect())
+        let mut res: Vec<_> = responses
+            .into_iter()
+            .sorted_unstable_by_key(|r| r.user_id)
+            .sorted_by_key(|r| -(r.attempt() as i64))
+            .filter(predicate)
+            .collect();
+        res.dedup_by_key(|r| r.user_id);
+
+        Ok(res)
     }
 
     pub async fn count_submissions(

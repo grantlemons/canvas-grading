@@ -64,20 +64,39 @@ pub struct CLI {
 pub enum Command {
     /// Read in a results file, parse it and output the result
     Debug,
-    /// Download ungraded submissions and print the paths to standard output
-    Submissions,
+    /// Download submissions meeting a predicate and print the paths to standard output
+    #[command(subcommand)]
+    Submissions(SubmissionState),
     /// Upload grades and comments from file
     Grade,
-    /// Count the number of submissions meeting a requirement
+    /// Count the number of submissions meeting a predicate
     #[command(subcommand)]
-    Count(CountOptions),
+    Count(SubmissionState),
 }
 
 #[derive(Subcommand, Clone, Debug)]
-pub enum CountOptions {
+pub enum SubmissionState {
     Unsubmitted,
     Submitted,
+    Ungraded,
     Graded,
+}
+
+impl SubmissionState {
+    pub fn predicate(&self) -> fn(&Submission) -> bool {
+        match self {
+            SubmissionState::Unsubmitted => Submission::unsubmitted,
+            SubmissionState::Submitted => Submission::submitted,
+            SubmissionState::Ungraded => Submission::ungraded,
+            SubmissionState::Graded => Submission::graded,
+        }
+    }
+}
+
+impl Default for SubmissionState {
+    fn default() -> Self {
+        Self::Ungraded
+    }
 }
 
 #[derive(Debug)]

@@ -9,9 +9,9 @@ Usage: canvas-grading [OPTIONS] <ASSIGNMENT_ID> <COMMAND>
 
 Commands:
   debug        Read in a results file, parse it and output the result
-  submissions  Download ungraded submissions and print the paths to standard output
+  submissions  Download submissions meeting a predicate and print the paths to standard output
   grade        Upload grades and comments from file
-  count        Count the number of submissions meeting a requirement
+  count        Count the number of submissions meeting a predicate
   help         Print this message or the help of the given subcommand(s)
 
 Arguments:
@@ -26,14 +26,19 @@ Options:
   -V, --version                      Print version
 ```
 
-### `count` Subcommands:
+### predicates
+
+Both `count` and `submissions` subcommands require a predicate, with options from those below:
 
 ```
+Count the number of submissions meeting a predicate
+
 Usage: canvas-grading <ASSIGNMENT_ID> count <COMMAND>
 
 Commands:
   unsubmitted  
   submitted    
+  ungraded     
   graded       
   help         Print this message or the help of the given subcommand(s)
 

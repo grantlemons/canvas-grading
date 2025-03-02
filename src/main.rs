@@ -1,8 +1,9 @@
 use std::{fs::File, str::FromStr, sync::Mutex};
 
 use anyhow::{anyhow, Result};
-use canvas_grading::{Command, Comment, Config, CountOptions, Grade, Submission, CLI};
+use canvas_grading::{Command, Comment, Config, Grade, Submission, CLI};
 use clap::{CommandFactory, Parser};
+use itertools::Itertools;
 use std::io;
 
 #[tokio::main]
@@ -34,9 +35,10 @@ async fn main() -> Result<()> {
 
             dbg!(grades, reduced_comments, config);
         }
-        Command::Submissions => {
+        Command::Submissions(option) => {
             let submissions =
-                Submission::assignment_submissions(cli.assignment_id, &config).await?;
+                Submission::assignment_submissions(cli.assignment_id, &option.predicate(), &config)
+                    .await?;
             let files: Vec<_> = submissions
                 .iter()
                 .flat_map(Submission::files)
@@ -71,15 +73,10 @@ async fn main() -> Result<()> {
             .await?;
         }
         Command::Count(option) => {
-            let predicate = match option {
-                CountOptions::Unsubmitted => Submission::unsubmitted,
-                CountOptions::Submitted => Submission::submitted,
-                CountOptions::Graded => Submission::graded,
-            };
-
             println!(
                 "{}",
-                Submission::count_submissions(cli.assignment_id, &predicate, &config).await?
+                Submission::count_submissions(cli.assignment_id, &option.predicate(), &config)
+                    .await?
             )
         }
     }
@@ -92,8 +89,8 @@ fn reduce_comments(comments: Vec<Comment>) -> Vec<Comment> {
     let mut reduced_comments = Vec::new();
     let mut acc = String::new();
     let mut user_id: Option<u64> = None;
-    for comment in comments {
-        if user_id.map_or(true, |id| id == comment.user_id) {
+    for comment in comments.into_iter().sorted_unstable_by_key(|c| c.user_id) {
+        if user_id.is_none_or(|id| id == comment.user_id) {
             acc.push_str(&comment.comment);
             acc.push('\n');
         } else if let Some(uid) = user_id {
