@@ -65,11 +65,11 @@ impl Submission {
     }
 
     pub fn grade_100(&self) -> bool {
-        self.graded() && self.score.unwrap() as usize == 100
+        self.submitted() && self.graded() && self.score.unwrap() as usize == 100
     }
 
     pub fn grade_not_100(&self) -> bool {
-        !self.grade_100()
+        self.submitted() && !self.grade_100()
     }
 
     pub fn assignment(&self) -> u64 {
