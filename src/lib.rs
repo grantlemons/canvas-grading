@@ -80,6 +80,7 @@ pub enum SubmissionState {
     Submitted,
     Ungraded,
     Graded,
+    GradeNot100,
 }
 
 impl SubmissionState {
@@ -89,6 +90,7 @@ impl SubmissionState {
             SubmissionState::Submitted => Submission::submitted,
             SubmissionState::Ungraded => Submission::ungraded,
             SubmissionState::Graded => Submission::graded,
+            SubmissionState::GradeNot100 => Submission::grade_not_100,
         }
     }
 }

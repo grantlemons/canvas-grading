@@ -64,6 +64,14 @@ impl Submission {
         matches!(self.workflow_state, WorkflowState::Unsubmitted) || self.attachments.is_none()
     }
 
+    pub fn grade_100(&self) -> bool {
+        self.graded() && self.score.unwrap() as usize == 100
+    }
+
+    pub fn grade_not_100(&self) -> bool {
+        !self.grade_100()
+    }
+
     pub fn assignment(&self) -> u64 {
         self.assignment_id
     }

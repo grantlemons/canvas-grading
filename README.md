@@ -40,6 +40,7 @@ Commands:
   submitted    
   ungraded     
   graded       
+  grade-not100
   help         Print this message or the help of the given subcommand(s)
 
 Options:
