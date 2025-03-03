@@ -1,7 +1,7 @@
 [package]
 name = "canvas-grading"
 authors = ["Grant Lemons <grantlemons@aol.com>"]
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 description = "CLI tool used to fetch submissions and upload grades to and from Canvas LMS"
 repository = "https://github.com/grantlemons/canvas-grading/"
